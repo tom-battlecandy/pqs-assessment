@@ -1,11 +1,17 @@
 import {
   bookingResponseSchema,
+  bookingsResponseSchema,
+  topicsResponseSchema,
   trainingDataResponseSchema,
   trainingRecordResponseSchema,
+  trainingRecordsResponseSchema,
   type Booking,
+  type BookingsResponse,
   type CreateBookingRequest,
   type CreateTrainingRecordRequest,
+  type TopicsResponse,
   type TrainingRecord,
+  type TrainingRecordsResponse,
   type UpdateBookingRequest,
   type UpdateTrainingRecordRequest,
 } from '../../../shared/contracts/training'
@@ -106,12 +112,33 @@ const json = (value: unknown) => JSON.stringify(value)
 export const trainingKeys = {
   all: ['training'] as const,
   data: () => [...trainingKeys.all, 'data'] as const,
+  topics: () => [...trainingKeys.all, 'topics'] as const,
+  bookings: () => [...trainingKeys.all, 'bookings'] as const,
+  trainingRecords: () => [...trainingKeys.all, 'training-records'] as const,
 }
 
 export const trainingDataQueryOptions = () =>
   queryOptions({
     queryKey: trainingKeys.data(),
     queryFn: getTrainingData,
+  })
+
+export const topicsQueryOptions = () =>
+  queryOptions({
+    queryKey: trainingKeys.topics(),
+    queryFn: getTopics,
+  })
+
+export const bookingsQueryOptions = () =>
+  queryOptions({
+    queryKey: trainingKeys.bookings(),
+    queryFn: getBookings,
+  })
+
+export const trainingRecordsQueryOptions = () =>
+  queryOptions({
+    queryKey: trainingKeys.trainingRecords(),
+    queryFn: getTrainingRecords,
   })
 
 const invalidateTraining = (queryClient: QueryClient) =>
@@ -162,6 +189,18 @@ export const updateTrainingRecordMutationOptions = (queryClient: QueryClient) =>
 
 export const getTrainingData = () =>
   trainingRequest('/api/training', trainingDataResponseSchema)
+
+export const getTopics = (): Promise<TopicsResponse> =>
+  trainingRequest('/api/training/topics', topicsResponseSchema)
+
+export const getBookings = (): Promise<BookingsResponse> =>
+  trainingRequest('/api/training/bookings', bookingsResponseSchema)
+
+export const getTrainingRecords = (): Promise<TrainingRecordsResponse> =>
+  trainingRequest(
+    '/api/training/training-records',
+    trainingRecordsResponseSchema,
+  )
 
 export const createBooking = (input: CreateBookingRequest): Promise<Booking> =>
   trainingRequest('/api/training/bookings', bookingResponseSchema, {

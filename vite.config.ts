@@ -2,13 +2,46 @@ import { fileURLToPath, URL } from 'node:url'
 
 import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig, loadEnv, type Plugin } from 'vite'
+
+function pwaHtml(): Plugin {
+  return {
+    name: 'pqs-pwa-html',
+    transformIndexHtml() {
+      return [
+        {
+          tag: 'link',
+          attrs: { rel: 'manifest', href: '/manifest.webmanifest' },
+          injectTo: 'head',
+        },
+        {
+          tag: 'meta',
+          attrs: { name: 'theme-color', content: '#0f766e' },
+          injectTo: 'head',
+        },
+        {
+          tag: 'link',
+          attrs: {
+            rel: 'apple-touch-icon',
+            href: '/icons/pqs-192.png',
+          },
+          injectTo: 'head',
+        },
+        {
+          tag: 'script',
+          attrs: { src: '/register-sw.js', defer: true },
+          injectTo: 'body',
+        },
+      ]
+    },
+  }
+}
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '')
 
   return {
-    plugins: [vue(), tailwindcss()],
+    plugins: [vue(), tailwindcss(), pwaHtml()],
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
@@ -16,6 +49,12 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
+      port: 5173,
+      proxy: {
+        '/api': env.VITE_API_URL || 'http://localhost:3000',
+      },
+    },
+    preview: {
       port: 5173,
       proxy: {
         '/api': env.VITE_API_URL || 'http://localhost:3000',

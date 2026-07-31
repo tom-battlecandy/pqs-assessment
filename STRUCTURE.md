@@ -208,7 +208,7 @@ Rules:
 | Account policy | `server/modules/account/service.ts` | Owns email normalisation, blocked domains, verification and company association. |
 | Training policy | `server/modules/training/service.ts` | Owns record access, booking transitions and certification invariants. |
 | Database | `server/db/connection.ts` | Opens SQLite and exposes the configured connection; business SQL stays in its owning service initially. |
-| Email delivery | `server/shared/mailer.ts` | Provides the small send-verification, send-reset and send-invitation boundary. |
+| Email output | `server/shared/mailer.ts` | Formats verification, reset and invitation emails and prints their complete development content to the API console. |
 | Date handling | `shared/dates.ts` | Pure functions centralise ISO date parsing and the inclusive 90-day calculation; callers provide today's date. |
 | Training view model | `src/modules/training/events.ts` | Pure transformation from API data and URL filters to final paginated events. |
 | Server state | Module `api.ts` files | TanStack Query owns remote cache, refresh and invalidation. |
@@ -343,7 +343,8 @@ module-local `queries.ts`. That is a refactor trigger, not initial scaffolding.
 
 - `auth.ts`: session cookie lookup and current-user enforcement.
 - `errors.ts`: one small application error type and the HTTP error handler.
-- `mailer.ts`: email transport and the three email templates.
+- `mailer.ts`: the three email templates and console output; no external email
+  transport is configured.
 - `config.ts`: validates environment variables once at startup.
 
 Do not make a general-purpose utility folder. Every shared file must name the
@@ -417,7 +418,8 @@ The repository should provide:
 - `npm run lint`: checks the full repository
 - `npm run format`: formats the full repository
 - `npm run check`: runs typecheck and lint
-- `npm run db:seed`: inserts example topics/data
+- `npm run db:seed`: idempotently inserts the companies and five verified users
+  documented in `README.md`, plus example topics/data
 - `npm run db:reset`: explicitly resets only `./data/pqs.sqlite` for local use
 
 Additional conventions:

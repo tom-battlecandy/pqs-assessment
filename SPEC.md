@@ -39,7 +39,7 @@ The implementation layout and module boundaries are defined in
 - Registration using a company email address
 - Email verification
 - Sign in and cookie-based sessions
-- Password reset by email
+- Password reset using a console-generated email link
 - Automatic company association by verified email domain
 - Convenience invitations for people at the same company
 - Personal training bookings
@@ -73,8 +73,8 @@ The implementation layout and module boundaries are defined in
 5. A domain can belong to exactly one company.
 6. A user can belong to exactly one company.
 7. A user can view and mutate only their own profile and training data.
-8. An invitation does not grant access. It only sends a registration link to
-   another email address on the inviter's company domain.
+8. An invitation does not grant access. It only generates a registration email
+   for another address on the inviter's company domain.
 9. Bookings never turn into certifications automatically.
 10. A certification is created either manually or through the optional quick
     create shown when a booking is completed.
@@ -185,8 +185,9 @@ not blocked in this example.
 2. The API normalises the email and checks whether its domain is already owned.
 3. If the domain is unclaimed, the UI asks for a company name before submitting
    registration.
-4. The API creates an unverified user and sends a verification email. The
-   submitted company name is stored as `pending_company_name` until verification.
+4. The API creates an unverified user and prints a verification email to the API
+   console. The submitted company name is stored as `pending_company_name`
+   until verification.
 5. When the user follows the verification link, the API atomically checks the
    domain again:
    - If it remains unclaimed, create the company and claim the domain.
@@ -202,7 +203,8 @@ step, including when two people register with the same new domain concurrently.
 
 1. The user submits their name, email and password.
 2. The company-name step is not shown because the domain is already claimed.
-3. The API creates an unverified user and sends a verification email.
+3. The API creates an unverified user and prints a verification email to the API
+   console.
 4. On successful verification, link the user to the company that owns the
    domain and create a session.
 
@@ -213,12 +215,38 @@ The domain is checked again at verification rather than trusting client state.
 - Any verified user may invite another person.
 - The invitee email must be valid and have the same normalised domain as the
   inviter.
-- The application sends a registration link with the invitee email prefilled.
+- The application generates a registration email containing a link with the
+  invitee email prefilled and prints it to the API console.
 - Invitations do not need to be accepted to allow registration.
 - No invitation record is required.
 - Invalid or different-domain addresses receive inline validation feedback.
+- After generation, show:
+  `Invitation email generated. Check the API console for the email.`
 
 ## Authentication
+
+### Console email output
+
+The example application does not connect to an external email provider.
+Verification, password-reset and invitation emails are printed to the API
+console.
+
+Each generated email must include its complete development content:
+
+```text
+--- EMAIL ---
+To: recipient@example.test
+Subject: Email subject
+
+Email body, including the complete action URL
+--- END EMAIL ---
+```
+
+The console output must not contain passwords, password hashes, session cookies
+or unrelated user data.
+
+The relevant UI action shows a success status directing the user to the API
+console. Printing happens on the API process, not in the browser console.
 
 ### Password rules
 
@@ -243,12 +271,18 @@ The domain is checked again at verification rather than trusting client state.
 - Verification links are single-use and expire after 24 hours.
 - An unverified user can request a replacement verification email.
 - A replacement invalidates any earlier unused verification token.
+- After registration or a replacement request, show:
+  `Verification email generated. Check the API console for the email.`
 
 ### Password reset
 
 - A user can request a reset email by entering their email address.
 - The request always returns the same success response, whether or not the
   account exists.
+- After the request, show:
+  `If an account exists, a password reset email has been generated. Check the API console for the email.`
+- When the account exists, print the reset email to the API console. When it
+  does not exist, print no email.
 - Reset links are single-use and expire after one hour.
 - A successful reset updates the password and revokes the user's existing
   sessions.
@@ -565,7 +599,7 @@ The API provides:
 - Sign in and sign out
 - Request and complete password reset
 - Read and update current user
-- Send same-domain invitation email
+- Generate same-domain invitation email output
 - List topics
 - List, create and update the current user's bookings
 - Complete or cancel the current user's open booking
@@ -599,6 +633,8 @@ No migration, backup or production persistence process is required.
 - Later verified accounts with that domain join the existing company.
 - A user cannot access any other user's profile or training records.
 - Invitations work only for the inviter's domain and confer no permissions.
+- Verification, invitation and password-reset emails are printed to the API
+  console and their UI status messages direct the user there.
 - Open bookings can be edited, completed or cancelled.
 - Completing a booking offers, but does not force, certification creation.
 - Certifications can be created manually and edited.

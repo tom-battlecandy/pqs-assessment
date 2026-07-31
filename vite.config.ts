@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 
-function pwaHtml(): Plugin {
+function pwaHtml(registerServiceWorker: boolean): Plugin {
   return {
     name: 'pqs-pwa-html',
     transformIndexHtml() {
@@ -29,7 +29,12 @@ function pwaHtml(): Plugin {
         },
         {
           tag: 'script',
-          attrs: { src: '/register-sw.js', defer: true },
+          attrs: {
+            src: registerServiceWorker
+              ? '/register-sw.js'
+              : '/unregister-sw.js',
+            defer: true,
+          },
           injectTo: 'body',
         },
       ]
@@ -37,11 +42,11 @@ function pwaHtml(): Plugin {
   }
 }
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, '.', '')
 
   return {
-    plugins: [vue(), tailwindcss(), pwaHtml()],
+    plugins: [vue(), tailwindcss(), pwaHtml(command === 'build')],
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),

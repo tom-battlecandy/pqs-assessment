@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 
+import AppShell from '@/shared/components/AppShell.vue'
+
 const apiStatus = ref('Checking API…')
 
 onMounted(async () => {
@@ -18,10 +20,10 @@ onMounted(async () => {
 
 <template>
   <v-app>
-    <v-main class="bg-slate-50">
+    <AppShell>
       <router-view v-slot="{ Component }">
         <component :is="Component" :api-status="apiStatus" />
       </router-view>
-    </v-main>
+    </AppShell>
   </v-app>
 </template>

@@ -1,5 +1,42 @@
 @import 'tailwindcss';
 
+@theme {
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+  --breakpoint-2xl: 96rem;
+
+  --color-pqs-primary: #075985;
+  --color-pqs-background: #f8fafc;
+  --color-pqs-surface: #ffffff;
+
+  --font-sans:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
+}
+
+:root {
+  color-scheme: light;
+  font-family: var(--font-sans);
+  font-synthesis: none;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
 html {
-  background: #f8fafc;
+  background: var(--color-pqs-background);
+}
+
+body {
+  margin: 0;
+}
+
+:where(a, button, [tabindex]:not([tabindex='-1'])):focus-visible {
+  outline: 3px solid #0ea5e9;
+  outline-offset: 3px;
 }

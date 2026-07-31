@@ -8,13 +8,16 @@ import {
 import { lookupCompanyDomain, register } from '../api'
 import { applyApiError, errorMessages, zodFieldErrors } from '../validation'
 
+const props = withDefaults(defineProps<{ initialEmail?: string }>(), {
+  initialEmail: '',
+})
 const emit = defineEmits<{
   registered: [message: string, email: string]
 }>()
 
 const form = reactive({
   name: '',
-  email: '',
+  email: props.initialEmail,
   password: '',
   passwordConfirmation: '',
   companyName: '',

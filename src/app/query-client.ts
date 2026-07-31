@@ -1,6 +1,12 @@
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
 
-const queryClient = new QueryClient()
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: true,
+    },
+  },
+})
 
 export const queryClientPlugin = {
   install(app: Parameters<typeof VueQueryPlugin.install>[0]) {

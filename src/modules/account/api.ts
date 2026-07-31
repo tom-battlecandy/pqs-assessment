@@ -65,13 +65,16 @@ async function accountRequest<T>(
       message?: unknown
       fieldErrors?: unknown
       errors?: unknown
+      fields?: unknown
     } | null
     const fieldErrors =
       error && typeof error.fieldErrors === 'object'
         ? (error.fieldErrors as FieldErrors)
         : error && typeof error.errors === 'object'
           ? (error.errors as FieldErrors)
-          : {}
+          : error && typeof error.fields === 'object'
+            ? (error.fields as FieldErrors)
+            : {}
 
     throw new AccountApiError(
       error && typeof error.message === 'string'
@@ -145,7 +148,7 @@ export const signOutMutationOptions = (queryClient: QueryClient) =>
   })
 
 export const lookupCompanyDomain = (input: DomainLookupRequest) =>
-  accountRequest('/api/account/domain', domainLookupResponseSchema, {
+  accountRequest('/api/account/domain-lookup', domainLookupResponseSchema, {
     method: 'POST',
     body: json(input),
   })
@@ -187,16 +190,20 @@ export const signOut = async (queryClient: QueryClient) => {
 
 export const requestPasswordReset = (input: RequestPasswordResetRequest) =>
   accountRequest(
-    '/api/account/request-password-reset',
+    '/api/account/password-reset',
     requestPasswordResetResponseSchema,
     { method: 'POST', body: json(input) },
   )
 
 export const resetPassword = (input: ResetPasswordRequest) =>
-  accountRequest('/api/account/reset-password', resetPasswordResponseSchema, {
-    method: 'POST',
-    body: json(input),
-  })
+  accountRequest(
+    '/api/account/password-reset/complete',
+    resetPasswordResponseSchema,
+    {
+      method: 'POST',
+      body: json(input),
+    },
+  )
 
 export const getCurrentUser = () =>
   accountRequest('/api/account/me', getCurrentUserResponseSchema)
@@ -215,8 +222,8 @@ export const updateProfile = async (
 }
 
 export const changePassword = (input: ChangePasswordRequest) =>
-  accountRequest('/api/account/me/password', changePasswordResponseSchema, {
-    method: 'PATCH',
+  accountRequest('/api/account/password/change', changePasswordResponseSchema, {
+    method: 'POST',
     body: json(input),
   })
 

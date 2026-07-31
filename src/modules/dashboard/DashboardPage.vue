@@ -10,6 +10,7 @@ import DashboardSummaryCard from './components/DashboardSummaryCard.vue'
 import { buildDashboardTrainingSummaries } from './summary'
 
 const invitationOpen = ref(false)
+const accountSettingsOpen = ref(false)
 const accountQuery = useQuery(currentUserQueryOptions())
 const trainingQuery = useQuery(trainingDataQueryOptions())
 
@@ -70,13 +71,23 @@ const trainingSummaries = computed(() =>
         </p>
       </div>
 
-      <v-btn
-        color="primary"
-        prepend-icon="mdi-account-plus"
-        @click="invitationOpen = true"
-      >
-        Invite company member
-      </v-btn>
+      <div class="flex flex-wrap gap-3">
+        <v-btn
+          variant="outlined"
+          color="primary"
+          prepend-icon="mdi-account-cog"
+          @click="accountSettingsOpen = true"
+        >
+          Account settings
+        </v-btn>
+        <v-btn
+          color="primary"
+          prepend-icon="mdi-account-plus"
+          @click="invitationOpen = true"
+        >
+          Invite company member
+        </v-btn>
+      </div>
     </header>
 
     <section aria-labelledby="training-summary-title">
@@ -109,19 +120,31 @@ const trainingSummaries = computed(() =>
       </div>
     </section>
 
-    <section
+    <v-dialog
       v-if="accountQuery.data.value"
-      class="mt-8"
+      v-model="accountSettingsOpen"
+      max-width="1100"
+      scrollable
       aria-labelledby="account-settings-title"
     >
-      <h2
-        id="account-settings-title"
-        class="mb-5 text-2xl font-semibold tracking-tight text-slate-950"
-      >
-        Account settings
-      </h2>
-      <ProfileEditor :user="accountQuery.data.value.user" />
-    </section>
+      <v-card rounded="xl">
+        <v-card-title class="flex! items-center px-6 pt-6">
+          <span id="account-settings-title" class="text-h5">
+            Account settings
+          </span>
+          <v-spacer />
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            aria-label="Close account settings"
+            @click="accountSettingsOpen = false"
+          />
+        </v-card-title>
+        <v-card-text class="px-6 pb-6">
+          <ProfileEditor :user="accountQuery.data.value.user" />
+        </v-card-text>
+      </v-card>
+    </v-dialog>
 
     <InviteMemberDialog
       v-if="accountQuery.data.value"

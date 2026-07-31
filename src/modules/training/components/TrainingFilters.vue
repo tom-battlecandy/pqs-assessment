@@ -30,7 +30,7 @@ const eventTypes = [
 </script>
 
 <template>
-  <v-card rounded="xl" variant="outlined">
+  <v-card class="border-gray-200!" rounded="md" variant="outlined">
     <v-card-title class="px-5 pt-5 text-h6">Filters</v-card-title>
     <v-card-text class="grid gap-x-4 pb-2 sm:grid-cols-2 lg:grid-cols-4">
       <v-select

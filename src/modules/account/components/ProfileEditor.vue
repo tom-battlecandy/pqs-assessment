@@ -87,7 +87,7 @@ async function savePassword() {
 
 <template>
   <div class="grid gap-6 lg:grid-cols-2">
-    <v-card variant="outlined">
+    <v-card class="border-gray-200!" variant="outlined">
       <v-card-title>Profile</v-card-title>
       <v-card-text>
         <p class="mb-5 text-sm text-slate-600">
@@ -131,7 +131,7 @@ async function savePassword() {
       </v-card-text>
     </v-card>
 
-    <v-card variant="outlined">
+    <v-card class="border-gray-200!" variant="outlined">
       <v-card-title>Change password</v-card-title>
       <v-card-text>
         <form novalidate @submit.prevent="savePassword">

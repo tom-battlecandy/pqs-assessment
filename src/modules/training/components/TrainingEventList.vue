@@ -71,7 +71,11 @@ function formatDate(value: string) {
       {{ section.label }}
     </h2>
 
-    <v-card class="hidden md:block" rounded="xl" variant="outlined">
+    <v-card
+      class="hidden border-gray-200! md:block"
+      rounded="md"
+      variant="outlined"
+    >
       <v-table>
         <thead>
           <tr>
@@ -116,7 +120,8 @@ function formatDate(value: string) {
       <v-card
         v-for="event in section.events"
         :key="event.eventId"
-        rounded="xl"
+        class="border-gray-200!"
+        rounded="md"
         variant="outlined"
       >
         <v-card-text class="flex items-start justify-between gap-4">

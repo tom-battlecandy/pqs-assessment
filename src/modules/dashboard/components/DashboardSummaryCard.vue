@@ -24,9 +24,10 @@ function formatDate(date: string): string {
 </script>
 
 <template>
-  <v-card class="flex min-h-[25rem] flex-col" rounded="lg" variant="outlined">
-    <v-card-title class="flex items-start justify-between gap-4 pa-5 sm:pa-6">
+  <v-card class="flex min-h-[25rem] flex-col border-gray-200!" rounded="lg" variant="outlined">
+    <v-card-title class="flex! flex-nowrap items-start gap-4 pa-5 sm:pa-6">
       <span class="text-lg font-semibold whitespace-normal">{{ title }}</span>
+      <div class="grow"></div>
       <v-chip
         v-if="!loading"
         color="primary"

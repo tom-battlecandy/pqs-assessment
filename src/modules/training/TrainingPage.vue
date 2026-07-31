@@ -6,9 +6,15 @@ import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router'
 import type {
   Booking,
   IsoDate,
+  TrainingDataResponse,
   TrainingRecord,
 } from '../../../shared/contracts/training'
-import { trainingDataQueryOptions, TrainingApiError } from './api'
+import {
+  bookingsQueryOptions,
+  topicsQueryOptions,
+  trainingRecordsQueryOptions,
+  TrainingApiError,
+} from './api'
 import {
   buildTrainingEventList,
   parseTrainingEventQuery,
@@ -22,7 +28,13 @@ import TrainingFilters from './components/TrainingFilters.vue'
 
 const route = useRoute()
 const router = useRouter()
-const trainingQuery = useQuery(trainingDataQueryOptions())
+const topicsQuery = useQuery(topicsQueryOptions())
+const bookingsQuery = useQuery({
+  ...bookingsQueryOptions(),
+  retry: false,
+  refetchOnWindowFocus: false,
+})
+const trainingRecordsQuery = useQuery(trainingRecordsQueryOptions())
 
 const bookingOpen = ref(false)
 const certificationOpen = ref(false)
@@ -42,20 +54,42 @@ const today = computed<IsoDate>(() => {
   return `${year}-${month}-${day}` as IsoDate
 })
 const filters = computed(() => parseTrainingEventQuery(route.query))
+const trainingData = computed<TrainingDataResponse | undefined>(() => {
+  if (!topicsQuery.data.value || !trainingRecordsQuery.data.value) {
+    return undefined
+  }
+
+  return {
+    topics: topicsQuery.data.value.topics,
+    bookings: bookingsQuery.data.value?.bookings ?? [],
+    trainingRecords: trainingRecordsQuery.data.value.trainingRecords,
+  }
+})
 const eventPage = computed(() =>
-  trainingQuery.data.value
-    ? buildTrainingEventList(
-        trainingQuery.data.value,
-        today.value,
-        filters.value,
-      )
+  trainingData.value
+    ? buildTrainingEventList(trainingData.value, today.value, filters.value)
     : undefined,
 )
-const topics = computed(() => trainingQuery.data.value?.topics ?? [])
-const queryError = computed(() =>
-  trainingQuery.error.value instanceof TrainingApiError
-    ? trainingQuery.error.value.message
-    : 'Training data could not be loaded.',
+const topics = computed(() => topicsQuery.data.value?.topics ?? [])
+const pageIsPending = computed(
+  () =>
+    topicsQuery.isPending.value || trainingRecordsQuery.isPending.value,
+)
+const pageIsError = computed(
+  () => topicsQuery.isError.value || trainingRecordsQuery.isError.value,
+)
+const pageError = computed(() => {
+  const error = topicsQuery.error.value ?? trainingRecordsQuery.error.value
+  return error instanceof TrainingApiError
+    ? error.message
+    : 'Training data could not be loaded.'
+})
+const bookingsError = computed(() =>
+  bookingsQuery.error.value instanceof TrainingApiError
+    ? bookingsQuery.error.value.message
+    : bookingsQuery.isError.value
+      ? 'The bookings request timed out. Please try again.'
+      : undefined,
 )
 const anyDialogOpen = computed(
   () => bookingOpen.value || certificationOpen.value,
@@ -101,7 +135,7 @@ function openCertification(record?: TrainingRecord) {
 function selectEvent(event: TrainingEvent) {
   if (event.sourceType === 'booking') {
     openBooking(
-      trainingQuery.data.value?.bookings.find(
+      bookingsQuery.data.value?.bookings.find(
         (booking) => booking.id === event.sourceId,
       ),
     )
@@ -109,7 +143,7 @@ function selectEvent(event: TrainingEvent) {
   }
 
   openCertification(
-    trainingQuery.data.value?.trainingRecords.find(
+    trainingRecordsQuery.data.value?.trainingRecords.find(
       (record) => record.id === event.sourceId,
     ),
   )
@@ -246,7 +280,7 @@ const activeFilters = computed(() => {
       </div>
     </header>
 
-    <template v-if="trainingQuery.isPending.value">
+    <template v-if="pageIsPending">
       <v-skeleton-loader class="mb-6" type="article" rounded="xl" />
       <v-skeleton-loader
         type="table-heading, table-thead, table-row@6"
@@ -255,14 +289,21 @@ const activeFilters = computed(() => {
     </template>
 
     <v-alert
-      v-else-if="trainingQuery.isError.value"
+      v-else-if="pageIsError"
       type="error"
       variant="tonal"
       title="Unable to load training"
       class="mb-6"
     >
-      <p>{{ queryError }}</p>
-      <v-btn class="mt-3" variant="outlined" @click="trainingQuery.refetch()">
+      <p>{{ pageError }}</p>
+      <v-btn
+        class="mt-3"
+        variant="outlined"
+        @click="
+          topicsQuery.refetch();
+          trainingRecordsQuery.refetch()
+        "
+      >
         Try again
       </v-btn>
     </v-alert>
@@ -295,7 +336,11 @@ const activeFilters = computed(() => {
       </div>
 
       <v-alert
-        v-if="eventPage.totalEvents === 0"
+        v-if="
+          eventPage.totalEvents === 0 &&
+          !bookingsQuery.isPending.value &&
+          !bookingsQuery.isError.value
+        "
         type="info"
         variant="tonal"
         title="No training events"
@@ -309,10 +354,17 @@ const activeFilters = computed(() => {
       </v-alert>
 
       <TrainingEventList
-        v-else
+        v-if="
+          eventPage.totalEvents > 0 ||
+          bookingsQuery.isPending.value ||
+          bookingsQuery.isError.value
+        "
         :events="eventPage.events"
         :include-archived="filters.includeArchived ?? false"
+        :bookings-loading="bookingsQuery.isPending.value"
+        :bookings-error="bookingsError"
         @select="selectEvent"
+        @retry-bookings="bookingsQuery.refetch()"
       />
 
       <footer

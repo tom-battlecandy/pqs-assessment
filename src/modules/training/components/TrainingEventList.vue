@@ -10,10 +10,13 @@ import type {
 const props = defineProps<{
   events: TrainingEvent[]
   includeArchived: boolean
+  bookingsLoading?: boolean
+  bookingsError?: string
 }>()
 
 const emit = defineEmits<{
   select: [event: TrainingEvent]
+  retryBookings: []
 }>()
 
 const sections = computed(() => {
@@ -35,7 +38,12 @@ const sections = computed(() => {
       events: props.events.filter((event) => event.section === 'archive'),
     })
   }
-  return result.filter((section) => section.events.length)
+  return result.filter(
+    (section) =>
+      section.events.length ||
+      (section.key === 'upcoming' &&
+        (props.bookingsLoading || props.bookingsError)),
+  )
 })
 
 const statusColors: Record<TrainingEventStatus, string> = {
@@ -87,6 +95,43 @@ function formatDate(value: string) {
           </tr>
         </thead>
         <tbody>
+          <tr v-if="section.key === 'upcoming' && bookingsLoading">
+            <td colspan="5" class="py-5!">
+              <div class="flex items-center gap-3 text-slate-600">
+                <v-progress-circular
+                  indeterminate
+                  color="primary"
+                  size="20"
+                  width="2"
+                />
+                <span>Loading bookings…</span>
+              </div>
+            </td>
+          </tr>
+          <tr v-else-if="section.key === 'upcoming' && bookingsError">
+            <td colspan="5" class="py-5!" role="alert">
+              <div
+                class="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center"
+              >
+                <div>
+                  <p class="font-semibold text-red-700">
+                    Bookings could not be loaded
+                  </p>
+                  <p class="mt-1 text-sm text-slate-600">
+                    {{ bookingsError }}
+                  </p>
+                </div>
+                <v-btn
+                  color="primary"
+                  variant="outlined"
+                  size="small"
+                  @click="emit('retryBookings')"
+                >
+                  Retry
+                </v-btn>
+              </div>
+            </td>
+          </tr>
           <tr v-for="event in section.events" :key="event.eventId">
             <td class="font-medium">{{ event.topicName }}</td>
             <td>{{ formatLabel(event.type) }}</td>
@@ -117,6 +162,45 @@ function formatDate(value: string) {
     </v-card>
 
     <div class="grid gap-3 md:hidden">
+      <v-card
+        v-if="section.key === 'upcoming' && bookingsLoading"
+        class="border-gray-200!"
+        rounded="md"
+        variant="outlined"
+      >
+        <v-card-text class="flex items-center gap-3 text-slate-600">
+          <v-progress-circular
+            indeterminate
+            color="primary"
+            size="20"
+            width="2"
+          />
+          <span>Loading bookings…</span>
+        </v-card-text>
+      </v-card>
+      <v-card
+        v-else-if="section.key === 'upcoming' && bookingsError"
+        class="border-gray-200!"
+        rounded="md"
+        variant="outlined"
+        role="alert"
+      >
+        <v-card-text>
+          <p class="font-semibold text-red-700">
+            Bookings could not be loaded
+          </p>
+          <p class="mt-1 text-sm text-slate-600">{{ bookingsError }}</p>
+          <v-btn
+            class="mt-4"
+            color="primary"
+            variant="outlined"
+            size="small"
+            @click="emit('retryBookings')"
+          >
+            Retry
+          </v-btn>
+        </v-card-text>
+      </v-card>
       <v-card
         v-for="event in section.events"
         :key="event.eventId"

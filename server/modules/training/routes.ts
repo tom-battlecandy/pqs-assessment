@@ -56,6 +56,7 @@ function validationError(response: Response, error: z.ZodError): void {
 
 export function createTrainingRouter(options: TrainingRouterOptions): Router {
   const router = Router()
+  const usersWithBookingTimeout = new Set<number>()
 
   router.use((request, response, next) => {
     const userId = options.resolveUserId(request)
@@ -81,8 +82,21 @@ export function createTrainingRouter(options: TrainingRouterOptions): Router {
   })
 
   router.get('/bookings', (_request, response) => {
+    const userId = response.locals.userId as number
+    if (!usersWithBookingTimeout.has(userId)) {
+      usersWithBookingTimeout.add(userId)
+      setTimeout(() => {
+        response.status(504).json({
+          error: {
+            message: 'The bookings request timed out. Please try again.',
+          },
+        })
+      }, 1_000)
+      return
+    }
+
     const data = {
-      bookings: listBookings(options.database, response.locals.userId),
+      bookings: listBookings(options.database, userId),
     }
     response.json(bookingsResponseSchema.parse(data))
   })

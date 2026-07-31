@@ -10,8 +10,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "check": "prettier --check . && npm run lint && npm run typecheck && npm run build",
-    "db:seed": "node -e \"console.log('Database seed will be added with the database schema.')\"",
-    "db:reset": "node -e \"console.log('Database reset will be added with the database schema.')\""
+    "db:seed": "tsx server/db/seed.ts",
+    "db:reset": "tsx server/db/reset.ts"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.11",

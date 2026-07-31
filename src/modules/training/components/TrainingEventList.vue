@@ -186,9 +186,7 @@ function formatDate(value: string) {
         role="alert"
       >
         <v-card-text>
-          <p class="font-semibold text-red-700">
-            Bookings could not be loaded
-          </p>
+          <p class="font-semibold text-red-700">Bookings could not be loaded</p>
           <p class="mt-1 text-sm text-slate-600">{{ bookingsError }}</p>
           <v-btn
             class="mt-4"

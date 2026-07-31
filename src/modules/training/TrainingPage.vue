@@ -72,11 +72,22 @@ const eventPage = computed(() =>
 )
 const topics = computed(() => topicsQuery.data.value?.topics ?? [])
 const pageIsPending = computed(
-  () =>
-    topicsQuery.isPending.value || trainingRecordsQuery.isPending.value,
+  () => topicsQuery.isPending.value || trainingRecordsQuery.isPending.value,
 )
 const pageIsError = computed(
   () => topicsQuery.isError.value || trainingRecordsQuery.isError.value,
+)
+const showEmptyState = computed(
+  () =>
+    eventPage.value?.totalEvents === 0 &&
+    !bookingsQuery.isPending.value &&
+    !bookingsQuery.isError.value,
+)
+const showEventList = computed(
+  () =>
+    (eventPage.value?.totalEvents ?? 0) > 0 ||
+    bookingsQuery.isPending.value ||
+    bookingsQuery.isError.value,
 )
 const pageError = computed(() => {
   const error = topicsQuery.error.value ?? trainingRecordsQuery.error.value
@@ -228,6 +239,11 @@ function clearFilters() {
   void router.replace({ query })
 }
 
+function refetchPageData() {
+  void topicsQuery.refetch()
+  void trainingRecordsQuery.refetch()
+}
+
 const activeFilters = computed(() => {
   const active: { key: string; label: string }[] = []
   if (filters.value.topic !== undefined) {
@@ -296,14 +312,7 @@ const activeFilters = computed(() => {
       class="mb-6"
     >
       <p>{{ pageError }}</p>
-      <v-btn
-        class="mt-3"
-        variant="outlined"
-        @click="
-          topicsQuery.refetch();
-          trainingRecordsQuery.refetch()
-        "
-      >
+      <v-btn class="mt-3" variant="outlined" @click="refetchPageData">
         Try again
       </v-btn>
     </v-alert>
@@ -336,11 +345,7 @@ const activeFilters = computed(() => {
       </div>
 
       <v-alert
-        v-if="
-          eventPage.totalEvents === 0 &&
-          !bookingsQuery.isPending.value &&
-          !bookingsQuery.isError.value
-        "
+        v-if="showEmptyState"
         type="info"
         variant="tonal"
         title="No training events"
@@ -354,11 +359,7 @@ const activeFilters = computed(() => {
       </v-alert>
 
       <TrainingEventList
-        v-if="
-          eventPage.totalEvents > 0 ||
-          bookingsQuery.isPending.value ||
-          bookingsQuery.isError.value
-        "
+        v-if="showEventList"
         :events="eventPage.events"
         :include-archived="filters.includeArchived ?? false"
         :bookings-loading="bookingsQuery.isPending.value"

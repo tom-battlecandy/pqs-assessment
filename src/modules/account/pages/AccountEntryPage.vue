@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { useQueryClient } from '@tanstack/vue-query'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import {
   requestPasswordResetRequestSchema,
   type CurrentUser,
@@ -13,8 +13,13 @@ import { accountKeys, requestPasswordReset } from '../api'
 import { applyApiError, errorMessages, zodFieldErrors } from '../validation'
 
 const router = useRouter()
+const route = useRoute()
 const queryClient = useQueryClient()
-const tab = ref<'sign-in' | 'register'>('sign-in')
+const tab = ref<'sign-in' | 'register'>(
+  route.query.tab === 'register' ? 'register' : 'sign-in',
+)
+const invitedEmail =
+  typeof route.query.email === 'string' ? route.query.email : ''
 const registeredMessage = ref('')
 const registeredEmail = ref('')
 const resetDialog = ref(false)
@@ -26,7 +31,13 @@ const requestingReset = ref(false)
 
 async function signedIn(user: CurrentUser) {
   queryClient.setQueryData(accountKeys.currentUser(), { user })
-  await router.push('/dashboard')
+  const redirect =
+    typeof route.query.redirect === 'string' &&
+    route.query.redirect.startsWith('/') &&
+    !route.query.redirect.startsWith('//')
+      ? route.query.redirect
+      : '/dashboard'
+  await router.push(redirect)
 }
 
 function showPasswordReset(email: string) {
@@ -107,6 +118,7 @@ async function requestReset() {
             </v-alert>
             <RegistrationForm
               v-if="!registeredMessage"
+              :initial-email="invitedEmail"
               @registered="
                 (message, email) => {
                   registeredMessage = message

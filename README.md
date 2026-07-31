@@ -8,13 +8,12 @@ certifications.
 
 ## Current status
 
-The repository currently contains the implementation specification and
-structure plan. The application scaffold should implement the run commands
-documented below without changing their developer-facing behaviour.
+The repository contains the runnable Vue client, Node API and SQLite data
+store described by the implementation specification and structure plan.
 
 ## Prerequisites
 
-- Node.js
+- Node.js 22.12 or newer
 - npm
 - Docker with Docker Compose, if using the container workflow
 
@@ -126,7 +125,7 @@ Do not manually delete directories outside `./data`.
 
 1. Register with a non-blocked company-domain email.
 2. Open the verification URL printed by the API process.
-3. Sign in after verification.
+3. Successful verification creates a session and opens the dashboard.
 4. For password reset, submit the account email and open the reset URL printed
    by the API process.
 

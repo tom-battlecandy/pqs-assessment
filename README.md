@@ -152,3 +152,9 @@ matches it.
 
 No external email is sent. Check the API terminal—not the browser console—for a
 block beginning with `--- EMAIL ---`.
+
+### What I would have done with more time
+
+It looks like certifications are being archived, this is a bug as certifications should always be visible, this would be a P0 fix.
+
+I think there's a lot of design work that could be done to improve the user experience, I spent most of my time planning and implementing and although I did some planning early in my spec, I think I could have done a lot more.
